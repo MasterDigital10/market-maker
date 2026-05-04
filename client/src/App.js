@@ -11,7 +11,7 @@ export default function App() {
   const socketRef = useRef(null);
   const [connected, setConnected] = useState(false);
   const [myId, setMyId] = useState(null);
-  const [roomCode, setRoomCode] = useState(null);
+  const [roomCode, setRoomCode] = useState(() => localStorage.getItem('roomCode') || null);
   const [gameState, setGameState] = useState(null);
   const [error, setError] = useState('');
 
@@ -39,13 +39,13 @@ export default function App() {
 
   const handleCreateRoom = useCallback(async (name) => {
     const res = await emit('createRoom', { name });
-    if (res.ok) setRoomCode(res.code);
+    if (res.ok) { setRoomCode(res.code); localStorage.setItem('roomCode', res.code); }
     else setError(res.error || 'Failed to create room');
   }, [emit]);
 
   const handleJoinRoom = useCallback(async (code, name) => {
     const res = await emit('joinRoom', { code, name });
-    if (res.ok) setRoomCode(res.code);
+    if (res.ok) { setRoomCode(res.code); localStorage.setItem('roomCode', res.code); }
     else setError(res.error || 'Failed to join room');
   }, [emit]);
 
@@ -64,6 +64,7 @@ export default function App() {
   const handlePlayAgain = useCallback(() => {
     setRoomCode(null);
     setGameState(null);
+    localStorage.removeItem('roomCode');
   }, []);
 
   // Derive phase
