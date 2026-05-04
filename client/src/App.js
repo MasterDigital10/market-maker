@@ -23,6 +23,17 @@ export default function App() {
     socket.on('connect', () => {
       setConnected(true);
       setMyId(socket.id);
+      const savedCode = localStorage.getItem('roomCode');
+      if (savedCode) {
+        socket.emit('requestState', { code: savedCode }, (res) => {
+          if (res?.ok) {
+            setRoomCode(savedCode);
+            setGameState(res.state);
+          } else {
+            localStorage.removeItem('roomCode');
+          }
+        });
+      }
     });
     socket.on('disconnect', () => setConnected(false));
     socket.on('roomState', (state) => setGameState(state));
