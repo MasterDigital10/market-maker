@@ -243,9 +243,26 @@ io.on('connection', (socket) => {
   });
 
   // ── Reconnect / rejoin (restore state)
-  socket.on('requestState', ({ code }, cb) => {
+  socket.on('requestState', ({ code, name }, cb) => {
     const room = rooms[code];
     if (!room) return cb && cb({ ok: false });
+  
+    // re-link player to new socket ID
+    if (name) {
+      const existing = Object.values(room.players).find(p => p.name === name);
+      if (existing) {
+        const oldId = existing.id;
+        room.players[socket.id] = { ...existing, id: socket.id };
+        delete room.players[oldId];
+        if (room.hostId === oldId) room.hostId = socket.id;
+        if (room.quotes[oldId]) {
+          room.quotes[socket.id] = room.quotes[oldId];
+          delete room.quotes[oldId];
+        }
+      }
+    }
+  
+    socket.join(code);
     cb && cb({ ok: true, state: getRoomState(room, socket.id) });
   });
 

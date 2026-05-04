@@ -25,7 +25,8 @@ export default function App() {
       setMyId(socket.id);
       const savedCode = localStorage.getItem('roomCode');
       if (savedCode) {
-        socket.emit('requestState', { code: savedCode }, (res) => {
+        const savedName = localStorage.getItem('playerName');
+        socket.emit('requestState', { code: savedCode, name: savedName }, (res) => {
           if (res?.ok) {
             setRoomCode(savedCode);
             setGameState(res.state);
@@ -50,13 +51,13 @@ export default function App() {
 
   const handleCreateRoom = useCallback(async (name) => {
     const res = await emit('createRoom', { name });
-    if (res.ok) { setRoomCode(res.code); localStorage.setItem('roomCode', res.code); }
+    if (res.ok) { setRoomCode(res.code); localStorage.setItem('roomCode', res.code); localStorage.setItem('playerName', name); }
     else setError(res.error || 'Failed to create room');
   }, [emit]);
 
   const handleJoinRoom = useCallback(async (code, name) => {
     const res = await emit('joinRoom', { code, name });
-    if (res.ok) { setRoomCode(res.code); localStorage.setItem('roomCode', res.code); }
+    if (res.ok) { setRoomCode(res.code); localStorage.setItem('roomCode', res.code); localStorage.setItem('playerName', name); }
     else setError(res.error || 'Failed to join room');
   }, [emit]);
 
@@ -76,6 +77,7 @@ export default function App() {
     setRoomCode(null);
     setGameState(null);
     localStorage.removeItem('roomCode');
+    localStorage.removeItem('playerName');
   }, []);
 
   // Derive phase
